@@ -1,11 +1,69 @@
 import { build } from 'esbuild'
-import { mkdir, copyFile } from 'node:fs/promises'
+import { mkdir, copyFile, readFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const dist = resolve(root, 'dist')
+const mode = process.argv[2] || 'development'
+
+async function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) {
+    return {}
+  }
+
+  const content = await readFile(filePath, 'utf-8')
+  const result = {}
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim()
+
+    if (!line || line.startsWith('#')) {
+      continue
+    }
+
+    const index = line.indexOf('=')
+    if (index <= 0) {
+      continue
+    }
+
+    const key = line.slice(0, index).trim()
+    let value = line.slice(index + 1).trim()
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+
+    result[key] = value
+  }
+
+  return result
+}
+
+const env = {
+  ...(await loadEnvFile(resolve(root, '.env'))),
+  ...(await loadEnvFile(resolve(root, `.env.${mode}`)))
+}
+
+for (const [key, value] of Object.entries(env)) {
+  process.env[key] = value
+}
+
+const define = Object.fromEntries(
+  Object.entries(env).map(([key, value]) => [
+    `process.env.${key}`,
+    JSON.stringify(value)
+  ])
+)
+
+define['process.env.NODE_ENV'] = JSON.stringify(
+  mode === 'production' ? 'production' : 'development'
+)
 
 await mkdir(dist, { recursive: true })
 
@@ -18,7 +76,8 @@ await Promise.all([
     format: 'cjs',
     target: 'node20',
     external: ['electron'],
-    sourcemap: true
+    sourcemap: true,
+    define
   }),
 
   build({
@@ -29,7 +88,8 @@ await Promise.all([
     format: 'cjs',
     target: 'node20',
     external: ['electron'],
-    sourcemap: true
+    sourcemap: true,
+    define
   }),
 
   build({
@@ -43,7 +103,8 @@ await Promise.all([
     loader: {
       '.tsx': 'tsx',
       '.ts': 'ts'
-    }
+    },
+    define
   })
 ])
 
@@ -52,4 +113,4 @@ await copyFile(
   resolve(dist, 'index.html')
 )
 
-console.log('Build complete: dist/')
+console.log(`Build complete: dist/ (mode=${mode})`)
