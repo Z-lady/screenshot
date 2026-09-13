@@ -6,9 +6,10 @@
   "main": "dist/main.js",
   "scripts": {
     "clean": "node scripts/clean.mjs",
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/build.mjs production",
+    "build:dev": "node scripts/build.mjs development",
     "typecheck": "tsc --noEmit",
-    "dev": "npm run build && electron .",
+    "dev": "npm run build:dev && electron .",
     "start": "npm run dev"
   },
   "dependencies": {
