@@ -111,7 +111,73 @@ native/screenshot-helper/
 
 ---
 
-## 4. 安装
+## 4. 环境变量
+
+项目使用根目录 `.env` 作为本地环境配置文件。
+
+仓库只提交 `.env.example`，实际 `.env` 已加入 `.gitignore`，避免后续敏感配置被提交到公开仓库。
+
+首次运行先创建本地配置：
+
+### Windows CMD
+
+```cmd
+copy .env.example .env
+```
+
+### PowerShell
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### macOS
+
+```bash
+cp .env.example .env
+```
+
+当前配置：
+
+```env
+SCREENSHOT_PROVIDER=electron
+```
+
+可选值：
+
+```text
+electron  -> ElectronDesktopCaptureProvider（当前可运行测试路径）
+native    -> NativeHelperCaptureProvider（Native Helper 尚未实现完成）
+```
+
+所有主进程环境变量统一在：
+
+```text
+src/main/config/env.ts
+```
+
+进行加载、默认值处理和校验。业务代码不要直接散落读取 `process.env`，而是统一读取：
+
+```ts
+import { env } from './config/env'
+
+env.SCREENSHOT_PROVIDER
+```
+
+以后新增配置，例如：
+
+```env
+SCREENSHOT_PROVIDER=electron
+SCREENSHOT_DEBUG=true
+SCREENSHOT_HELPER_PATH=...
+LOG_LEVEL=debug
+```
+
+都应先加入 `.env.example`，再在 `src/main/config/env.ts` 中增加对应解析逻辑。
+
+---
+
+## 5. 安装
 
 建议：
 
@@ -135,7 +201,7 @@ npm install
 
 ---
 
-## 5. 校验
+## 6. 校验
 
 ```bash
 npm run typecheck
@@ -150,7 +216,7 @@ npm run dev
 
 ---
 
-## 6. 使用
+## 7. 使用
 
 打开主页面后点击：
 
@@ -161,8 +227,7 @@ npm run dev
 程序会：
 
 ```text
-隐藏主窗口
-→ 捕获所有显示器
+捕获所有显示器
 → 每个显示器创建一个 Overlay
 → 鼠标拖出区域
 → 显示工具栏
@@ -198,12 +263,14 @@ Cmd+Z        macOS 撤销
 
 ---
 
-## 7. 目录
+## 8. 目录
 
 ```text
 src/
 ├── main/
 │   ├── index.ts
+│   ├── config/
+│   │   └── env.ts
 │   └── screenshot/
 │       ├── CaptureProvider.ts
 │       ├── ElectronDesktopCaptureProvider.ts
@@ -236,7 +303,7 @@ docs/
 
 ---
 
-## 8. 这版可以测试什么
+## 9. 这版可以测试什么
 
 可以测试：
 
@@ -255,7 +322,7 @@ docs/
 
 ---
 
-## 9. 这版不能证明什么
+## 10. 这版不能证明什么
 
 这版不能证明：
 
@@ -290,7 +357,7 @@ IPC
 
 ---
 
-## 10. 下一阶段
+## 11. 下一阶段
 
 如果这版 UI / Overlay 测试通过，下一阶段只做一件事：
 
