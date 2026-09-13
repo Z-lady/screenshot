@@ -1,6 +1,5 @@
 import { join } from 'node:path'
 import { app, BrowserWindow } from 'electron'
-import { env } from './config/env'
 import { ElectronDesktopCaptureProvider } from './screenshot/ElectronDesktopCaptureProvider'
 import { NativeHelperCaptureProvider } from './screenshot/NativeHelperCaptureProvider'
 import { ScreenshotManager } from './screenshot/ScreenshotManager'
@@ -28,9 +27,10 @@ function createMainWindow(): BrowserWindow {
   win.once('ready-to-show', () => win.show())
   void win.loadFile(join(__dirname, 'index.html'))
 
-  const provider = env.SCREENSHOT_PROVIDER === 'native'
-    ? new NativeHelperCaptureProvider()
-    : new ElectronDesktopCaptureProvider()
+  const provider =
+    process.env.SCREENSHOT_PROVIDER === 'native'
+      ? new NativeHelperCaptureProvider()
+      : new ElectronDesktopCaptureProvider()
 
   screenshotManager = new ScreenshotManager(win, provider)
   screenshotManager.registerIpc()
