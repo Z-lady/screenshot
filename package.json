@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Electron screenshot v1.1 test project: React editor + pluggable capture provider",
+  "author": "Z-lady",
   "main": "dist/main.js",
   "scripts": {
     "clean": "node scripts/clean.mjs",
@@ -10,7 +11,9 @@
     "build:dev": "node scripts/build.mjs development",
     "typecheck": "tsc --noEmit",
     "dev": "npm run build:dev && electron .",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "pack:win": "npm run clean && npm run typecheck && npm run build && electron-builder --win dir --x64",
+    "dist:win": "npm run clean && npm run typecheck && npm run build && electron-builder --win nsis --x64"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -21,7 +24,41 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "electron": "^35.7.5",
+    "electron-builder": "^26.15.3",
     "esbuild": "^0.25.0",
     "typescript": "^5.9.3"
+  },
+  "build": {
+    "appId": "com.zlady.screenshot",
+    "productName": "Screenshot",
+    "asar": true,
+    "compression": "normal",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Screenshot",
+      "uninstallDisplayName": "Screenshot"
+    }
   }
 }
